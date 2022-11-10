@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Post
+from .models import Post, Category
 from .forms import PostForm
 from django.utils.text import slugify
 from django.contrib.auth.decorators import login_required
@@ -10,7 +10,12 @@ from django.contrib.auth.decorators import login_required
 #home view that show list of post
 def home(request):
     posts = Post.objects.all().filter(status="PUBLISHED")
-    return render(request, "blog/index.html", {"posts":posts})
+    category = Category.objects.all()
+    context = {
+        "posts":posts,
+        "category":category
+    }
+    return render(request, "blog/index.html", context)
 
 
 
