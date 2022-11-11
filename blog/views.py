@@ -36,7 +36,7 @@ def home(request):
 # detail view that show clicked post detail
 def post_detail(request, id, slug, category):
     post = get_object_or_404(Post, id=id, slug=slug, status="PUBLISHED")
-    posts = Post.objects.all().filter(status="PUBLISHED", category=category)
+    posts = Post.objects.all().filter(category=category).exclude(id=id)
     context ={}
     context["post"]=post
     context["posts"]=posts
@@ -45,7 +45,7 @@ def post_detail(request, id, slug, category):
 
 
 # Create the post by only login user
-@login_required(login_url="account/login")
+# @login_required(login_url="account/login")
 def post_create(request):
     if request.method == "POST":
         form = PostForm(request.POST)
