@@ -45,7 +45,7 @@ def post_detail(request, id, slug, category):
 
 
 # Create the post by only login user
-# @login_required(login_url="account/login")
+@login_required(login_url="account/login")
 def post_create(request):
     if request.method == "POST":
         form = PostForm(request.POST)
@@ -63,7 +63,7 @@ def post_create(request):
 
 
 # update the existing view
-# @login_required(login_url="account/login")
+@login_required(login_url="account/login")
 def post_update(request, id):
     post = get_object_or_404(Post, id=id)
     if request.method == "POST":
