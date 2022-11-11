@@ -3,6 +3,8 @@ from .models import Post, Category
 from .forms import PostForm
 from django.utils.text import slugify
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+
 
 
 # fuction based view
@@ -11,9 +13,20 @@ from django.contrib.auth.decorators import login_required
 def home(request):
     posts = Post.objects.all().filter(status="PUBLISHED")
     category = Category.objects.all()
+    paginator = Paginator(posts, 2)
+    page_number = request.GET.get('page', 1)
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        # if page is not an integer, deliver the first page
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        # if the page is out of range, deliver the last page
+        page_obj = paginator.page(paginator.num_pages)
     context = {
         "posts":posts,
-        "category":category
+        "category":category,
+        "page_obj":page_obj,
     }
     return render(request, "blog/index.html", context)
 
