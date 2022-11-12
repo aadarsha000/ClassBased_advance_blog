@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Post, Category
-from .forms import PostForm
+from .models import Post, Category, Comment
+from .forms import PostForm, CommentForm
 from django.utils.text import slugify
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
@@ -35,9 +35,29 @@ def home(request):
 
 # detail view that show clicked post detail
 def post_detail(request, id, slug, category):
+    context ={}
     post = get_object_or_404(Post, id=id, slug=slug, status="PUBLISHED")
     posts = Post.objects.all().filter(category=category).exclude(id=id)
-    context ={}
+    comments = Comment.objects.all().filter(post=id)
+    new_comment=None
+    if request.method == "POST":
+        form = CommentForm(request.POST)
+        print("hello")
+        if form.is_valid():
+            new_comment=form.save(commit=False)
+            new_comment.user = request.user
+            new_comment.post = post
+            print("hi")
+            new_comment.save()
+            print("hello")
+        else:
+            print("error")
+    else:
+        form = CommentForm()
+        print("else")
+    
+    context['comments']=comments
+    context['form']=form
     context["post"]=post
     context["posts"]=posts
     return render(request, "blog/postdetail.html", context)
@@ -54,7 +74,6 @@ def post_create(request):
             post.author = request.user
             post.slug = slugify(post.title)
             post.save()
-            return redirect("blog:home")
     else:
         form = PostForm()
     context = {"form":form}
