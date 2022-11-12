@@ -1,9 +1,10 @@
 from django import forms
+from django.core.exceptions import ValidationError  
 from .models import Profile
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 
-class UsercreateFrom(UserCreationForm):
+class UserCreationForm(UserCreationForm):
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={'class':'form-control'}), label='Password')
     password2 = forms.CharField(widget=forms.PasswordInput(attrs={'class':'form-control'}), label='Confirm Password')
     class Meta:
@@ -27,3 +28,5 @@ class ProfileForm(forms.ModelForm):
             'image' : forms.FileInput(attrs={'class':'form-control form-control-lg'}),
             'phone_number' : forms.TextInput(attrs={'class':'form-control form-control-lg'}),
         }
+
+
