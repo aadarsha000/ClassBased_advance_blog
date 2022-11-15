@@ -48,7 +48,7 @@ class HomePostListView(ListView):
 
 
 
-# detail view that show clicked post detail
+# detail view that show clicked post detail 
 def post_detail(request, id, slug, category):
     context ={}
     post = get_object_or_404(Post, id=id, slug=slug, status="PUBLISHED")
@@ -78,6 +78,7 @@ def post_detail(request, id, slug, category):
     return render(request, "blog/postdetail.html", context)
 
 
+# classs based post detail view
 class PostDetailView(DetailView):
     model = Post
     context_object_name = "post"
