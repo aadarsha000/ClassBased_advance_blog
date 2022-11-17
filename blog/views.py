@@ -3,8 +3,9 @@ from .models import Post, Category, Comment
 from .forms import PostForm, CommentForm
 from django.utils.text import slugify
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.views.generic import ListView, DetailView
+from django.views.generic.edit import FormMixin
+from django.urls import reverse_lazy
 
 
 # fuction based view
@@ -49,61 +50,67 @@ class HomePostListView(ListView):
 
 
 # detail view that show clicked post detail 
-def post_detail(request, id, slug, category):
-    context ={}
-    post = get_object_or_404(Post, id=id, slug=slug, status="PUBLISHED")
-    posts = Post.objects.all().filter(category=category).exclude(id=id)
-    comments = Comment.objects.all().filter(post=id)
-    new_comment=None
-    if request.method == "POST":
-        form = CommentForm(request.POST)
-        print("hello")
-        if form.is_valid():
-            new_comment=form.save(commit=False)
-            new_comment.user = request.user
-            new_comment.post = post
-            print("hi")
-            new_comment.save()
-            print("hello")
-        else:
-            print("error")
-    else:
-        form = CommentForm()
-        print("else")
+# def post_detail(request, id, slug, category):
+#     context ={}
+#     post = get_object_or_404(Post, id=id, slug=slug, status="PUBLISHED")
+#     posts = Post.objects.all().filter(category=category).exclude(id=id)
+#     comments = Comment.objects.all().filter(post=id)
+#     new_comment=None
+#     if request.method == "POST":
+#         form = CommentForm(request.POST)
+#         print("hello")
+#         if form.is_valid():
+#             new_comment=form.save(commit=False)
+#             new_comment.user = request.user
+#             new_comment.post = post
+#             print("hi")
+#             new_comment.save()
+#             print("hello")
+#         else:
+#             print("error")
+#     else:
+#         form = CommentForm()
+#         print("else")
     
-    context['comments']=comments
-    context['form']=form
-    context["post"]=post
-    context["posts"]=posts
-    return render(request, "blog/postdetail.html", context)
+#     context['comments']=comments
+#     context['form']=form
+#     context["post"]=post
+#     context["posts"]=posts
+#     return render(request, "blog/postdetail.html", context)
 
 
 # classs based post detail view
-class PostDetailView(DetailView):
+class PostDetailView(DetailView, FormMixin):
     model = Post
     context_object_name = "post"
     template_name = "blog/postdetail.html"
+    form_class = CommentForm
 
-    if request.method == "POST":
-        form = CommentForm(request.POST)
-        print("hello")
-        if form.is_valid():
-            new_comment=form.save(commit=False)
-            new_comment.user = request.user
-            new_comment.post = post
-            print("hi")
-            new_comment.save()
-            print("hello")
-        else:
-            print("error")
-    else:
-        form = CommentForm()
-        print("else")
-    
+    def get_success_url(self):
+        return reverse_lazy("blog:post_detail", kwargs={'pk':self.object.id, 'slug':self.object.slug})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["posts"]= get_object_or_404(Post, id=id, status="PUBLISHED")
+        context["comments"] = Comment.objects.all().filter(post=self.kwargs['pk'])
+        cat = get_object_or_404(Post, id=self.kwargs['pk'])
+        context["posts"] = Post.objects.all().filter(category=cat.category)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        form.instance.post = self.object
+        form.save()
+        return super().form_valid(form)
+
+    
 
 
 # Create the post by only login user

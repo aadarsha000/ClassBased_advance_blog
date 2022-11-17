@@ -78,7 +78,7 @@
                             <div class="small text-muted">{{posts.published}}</div>
                             <h2 class="card-title h4">{{posts.title}}</h2>
                             <p class="card-text">{{posts.body | truncatewords:10}}</p>
-                            <a class="btn btn-primary" href="{% url 'blog:post_detail' posts.id posts.slug posts.category.id %}">Read more →</a>
+                            <a class="btn btn-primary" href="{{posts.get_absolute_url}}">Read more →</a>
                         </div>
                     </div>
                 {% endfor %}
