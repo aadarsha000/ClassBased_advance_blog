@@ -4,7 +4,7 @@ from .forms import PostForm, CommentForm
 from django.utils.text import slugify
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, DetailView
-from django.views.generic.edit import FormMixin
+from django.views.generic.edit import FormMixin, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 
 
@@ -114,32 +114,59 @@ class PostDetailView(DetailView, FormMixin):
 
 
 # Create the post by only login user
-@login_required(login_url="account/login")
-def post_create(request):
-    if request.method == "POST":
-        form = PostForm(request.POST)
-        if form.is_valid():
-            post=form.save(commit=False)
-            post.author = request.user
-            post.slug = slugify(post.title)
-            post.save()
-    else:
-        form = PostForm()
-    context = {"form":form}
-    return render(request, "blog/postcreate.html", context)
+# @login_required(login_url="account/login")
+# def post_create(request):
+#     if request.method == "POST":
+#         form = PostForm(request.POST)
+#         if form.is_valid():
+#             post=form.save(commit=False)
+#             post.author = request.user
+#             post.slug = slugify(post.title)
+#             post.save()
+#     else:
+#         form = PostForm()
+#     context = {"form":form}
+#     return render(request, "blog/postcreate.html", context)
 
+class PostCreateView(CreateView):
+    template_name = "blog/postcreate.html"
+    form_class = PostForm
+
+    def get_success_url(self):
+        return reverse_lazy("blog:home")
+
+    def post(self, *args, **kwargs):
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+    
+    def form_valid(self,form):
+        form.instance.author = self.request.user
+        form.instance.slug = slugify(form.instance.title)
+        form.save()
+        return super().form_valid(form)
 
 
 # update the existing view
-@login_required(login_url="account/login")
-def post_update(request, id):
-    post = get_object_or_404(Post, id=id)
-    if request.method == "POST":
-        form = PostForm(request.POST,instance=post)
-        if form.is_valid():
-            form.save()
-    else:
-        form = PostForm(instance=post)
-    context = {"form":form}
-    return render(request, "blog/postudate.html", context)
+# @login_required(login_url="account/login")
+# def post_update(request, id):
+#     post = get_object_or_404(Post, id=id)
+#     if request.method == "POST":
+#         form = PostForm(request.POST,instance=post)
+#         if form.is_valid():
+#             form.save()
+#     else:
+#         form = PostForm(instance=post)
+#     context = {"form":form}
+#     return render(request, "blog/postudate.html", context)
+
+class PostUpadteView(UpdateView):
+    model = Post
+    template_name = "blog/postUpdate.html"
+    form_class = PostForm
+    context_object_name = 'form'
+    def get_success_url(self):
+        return reverse_lazy("blog:home")
 
